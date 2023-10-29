@@ -5,6 +5,7 @@ todo_list = TodoViewSet.as_view({
     'get': 'list',
 })
 todo_create = TodoViewSet.as_view({
+        'get': 'list',
         'post': 'create'
 })
 todo_detail = TodoViewSet.as_view({

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div class="bg-blue-800 text-7xl text-center h-[100] p-3 mb-4">
+        <h1>Todos</h1>
+    </div>
+    <div class="max-w-md border-4 border-solid border-black text-center mx-auto" id="form-wrapper">
+        <form method="post" id="form">
+            <div class="max-w-sm mx-auto">
+                <input id="title" type="text" class="m-2 p-2 border-2 border-solid border-black"/>
+                <button id="add" class="bg-blue-500 py-2 px-4 rounded-lg" type="submit">ADD</button>
+            </div>
+            <div id="items">
+                    
+            </div>
+        </form>
+    
+
+    </div>
+    <script type="text/javascript">
+        // for csrf token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Does this cookie string begin with the name we want?
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        // for displaying list
+        const buildlist = ()=>{
+            let items = document.getElementById('items')
+            items.innerHTML = ''
+            fetch('{% url "todolist" %}')
+            .then((resp)=>resp.json())
+            .then(function(data){
+                let listtodos = data
+                for(let i in listtodos)
+                {
+                    let item = ` <div id="${i}" class="max-w-xs flex space-x-10  mx-auto my-4" >
+                        <div class="w-32 bg-red-900 border-2 border-black">${listtodos[i].title}</div>
+                        <div>
+                        <button id="edit" class="bg-blue-500 py-2 px-4 rounded-lg">Edit</button>
+                        <button id="-" class="bg-blue-500 py-2 px-4 rounded-lg">Delete</button></div>
+                    </div>`
+
+                    items.innerHTML += item
+
+                }
+            })
+        }
+        buildlist()
+            let todo = document.getElementById('form')
+            todo.addEventListener('submit',function(e){
+                e.preventDefault()
+                console.log("submitted")
+                let title = document.getElementById('title').value
+                fetch('{% url "todocreate" %}',{
+                    method:'POST',
+                    headers:{
+                        'Content-type':'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body:JSON.stringify({'title':title}),
+                    mode: 'same-origin',
+                },
+                ).then(function(response)
+            {
+                buildlist()
+                document.getElementById('form').reset()
+            })
+            })
+    </script>
+
+</body>
+</html>
