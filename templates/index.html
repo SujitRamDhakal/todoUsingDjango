@@ -41,36 +41,105 @@
             return cookieValue;
         }
         const csrftoken = getCookie('csrftoken');
+        // edit list
+        let activeitem = null
+        const editlist = (item)=>{
+                console.log(item)
+                activeitem = item
+                document.getElementById('title').value = activeitem.title
+            }
+        // delete list
+        const deleteitem = (item)=>{
+            let url = `http://localhost:8000/api/todo-delete/${item.id}/`
+            fetch(url,
+            {
+                method:'DELETE',
+                headers:{
+                        'Content-type':'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+            }).then((response)=>
+            {
+                buildlist()
+            })
+        }
+        // strike item
+        const strikeitem = (item)=>{
+            console.log(item)
+            fetch(`http://localhost:8000/api/todo-update/${item.id}/`, {
+                method:'POST',
+                    headers:{
+                        'Content-type':'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body:JSON.stringify({'title':item.title,'completed':!item.completed}),
+                }).then((response)=>{
+                    buildlist()
+                })
+        }
 
         // for displaying list
         const buildlist = ()=>{
             let items = document.getElementById('items')
             items.innerHTML = ''
-            fetch('{% url "todolist" %}')
+            let url = 'http://localhost:8000/api/'
+            fetch(url)
             .then((resp)=>resp.json())
             .then(function(data){
                 let listtodos = data
                 for(let i in listtodos)
                 {
+                    let titles = `${listtodos[i].title}`
+                    if(listtodos[i].completed == true){
+                        titles = `<strike>${listtodos[i].title}</strike>`
+                    }
                     let item = ` <div id="${i}" class="max-w-xs flex space-x-10  mx-auto my-4" >
-                        <div class="w-32 bg-red-900 border-2 border-black">${listtodos[i].title}</div>
+                        <div class="w-32 bg-red-900 border-2 border-black title">${titles}</div>
                         <div>
-                        <button id="edit" class="bg-blue-500 py-2 px-4 rounded-lg">Edit</button>
-                        <button id="-" class="bg-blue-500 py-2 px-4 rounded-lg">Delete</button></div>
+                        <button id="edit" class="bg-blue-500 py-2 px-4 rounded-lg edit">Edit</button>
+                        <button id="delete" class="bg-blue-500 py-2 px-4 rounded-lg delete">Delete</button></div>
                     </div>`
 
                     items.innerHTML += item
 
                 }
+                for(let i in listtodos)
+                {
+                    const edit = document.getElementsByClassName('edit')[i]
+                    edit.addEventListener('click',(e)=>{
+                        e.preventDefault()
+                        editlist(listtodos[i])
+                    })
+                    const delet = document.getElementsByClassName('delete')[i]
+                    delet.addEventListener('click',(e)=>{
+                        e.preventDefault()
+                        deleteitem(listtodos[i])
+                    })
+                    document.getElementById('form').reset()
+                    const title = document.getElementsByClassName('title')[i]
+                    title.addEventListener('click',(e)=>{
+                        e.preventDefault()
+                        strikeitem(listtodos[i])
+                    })
+                }
             })
+
         }
         buildlist()
+        // adding item
             let todo = document.getElementById('form')
             todo.addEventListener('submit',function(e){
                 e.preventDefault()
-                console.log("submitted")
+                // console.log("submitted")
+                let url = 'http://localhost:8000/api/todo-create/'
+                if(activeitem != null)
+                {
+                    url = `http://localhost:8000/api/todo-update/${activeitem.id}/`
+                    activeitem = null
+                }
+
                 let title = document.getElementById('title').value
-                fetch('{% url "todocreate" %}',{
+                fetch(url,{
                     method:'POST',
                     headers:{
                         'Content-type':'application/json',

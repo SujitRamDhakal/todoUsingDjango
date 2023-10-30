@@ -5,15 +5,14 @@ todo_list = TodoViewSet.as_view({
     'get': 'list',
 })
 todo_create = TodoViewSet.as_view({
-        'get': 'list',
+        # 'get': 'list',
         'post': 'create'
 })
 todo_detail = TodoViewSet.as_view({
     'get': 'retrieve',
 })
 todo_update = TodoViewSet.as_view({
-    'get': 'retrieve',
-    'put': 'update',
+    'post': 'update',
 })
 todo_delete = TodoViewSet.as_view({
     'get': 'retrieve',
